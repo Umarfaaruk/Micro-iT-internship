@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>FAQ Chatbot - Internship Help (Real-time)</title>
+  <style>
+    :root {
+      --color-bg: #ffffff;
+      --color-text: #374151;
+      --color-text-muted: #6b7280;
+      --color-primary: #111827;
+      --color-primary-hover: #1f2937;
+      --color-bubble-user: #e0e7ff;
+      --color-bubble-bot: #f3f4f6;
+      --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      --border-radius: 0.75rem;
+      --shadow-light: 0 1px 3px rgba(0,0,0,0.1);
+      --transition-time: 0.3s;
+    }
+
+    /* Reset and base */
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      background-color: var(--color-bg);
+      font-family: var(--font-family);
+      color: var(--color-text);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      overflow: hidden;
+    }
+
+    /* Container & Layout */
+    .container {
+      max-width: 800px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 2rem 1rem 1rem;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+
+    header {
+      flex: 0 0 auto;
+      text-align: center;
+      margin-bottom: 1rem;
+      user-select: none;
+    }
+    header h1 {
+      font-weight: 700;
+      font-size: 3rem;
+      line-height: 1.1;
+      color: var(--color-primary);
+      margin: 0;
+    }
+    header p {
+      margin: 0.5rem 0 0;
+      color: var(--color-text-muted);
+      font-size: 1.125rem;
+    }
+
+    /* Chat window */
+    .chat-window {
+      flex: 1 1 auto;
+      background: var(--color-bubble-bot);
+      border-radius: var(--border-radius);
+      box-shadow: var(--shadow-light);
+      padding: 1rem 1rem 0;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      scroll-behavior: smooth;
+    }
+
+    .message {
+      max-width: 70%;
+      padding: 0.75rem 1rem;
+      border-radius: var(--border-radius);
+      line-height: 1.4;
+      font-size: 1rem;
+      box-shadow: var(--shadow-light);
+      animation: fadeInUp 0.3s ease forwards;
+      user-select: text;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+    .message.user {
+      align-self: flex-end;
+      background-color: var(--color-bubble-user);
+      color: var(--color-primary);
+      border-bottom-right-radius: 0px;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      transform-origin: bottom right;
+      transition: background-color var(--transition-time) ease;
+    }
+    .message.user:hover {
+      background-color: #c7d2fe;
+      cursor: default;
+    }
+    .message.bot {
+      align-self: flex-start;
+      background-color: #ffffff;
+      border: 1px solid #d1d5db;
+      color: var(--color-text);
+      border-bottom-left-radius: 0px;
+      font-weight: 400;
+      transform-origin: bottom left;
+      transition: background-color var(--transition-time) ease;
+    }
+    .message.bot:hover {
+      background-color: #f9fafb;
+      cursor: default;
+    }
+
+    /* Input area */
+    .input-area {
+      flex: 0 0 auto;
+      display: flex;
+      padding: 1rem 0;
+      gap: 1rem;
+      border-top: 1px solid #e5e7eb;
+    }
+    .input-area input[type="text"] {
+      flex: 1;
+      font-family: var(--font-family);
+      font-size: 1rem;
+      padding: 0.75rem 1rem;
+      border-radius: var(--border-radius);
+      border: 1px solid #d1d5db;
+      outline-offset: 2px;
+      transition: border-color var(--transition-time), box-shadow var(--transition-time);
+    }
+    .input-area input[type="text"]:focus {
+      border-color: #6366f1;
+      box-shadow: 0 0 8px rgba(99, 102, 241, 0.4);
+    }
+
+    /* Scrollbar style */
+    .chat-window::-webkit-scrollbar {
+      width: 8px;
+    }
+    .chat-window::-webkit-scrollbar-thumb {
+      background-color: #a5b4fc;
+      border-radius: 4px;
+    }
+    .chat-window::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    /* Animations */
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translate3d(0, 10px, 0);
+      }
+      to {
+        opacity: 1;
+        transform: translate3d(0, 0, 0);
+      }
+    }
+
+    @media (max-width: 480px) {
+      header h1 {
+        font-size: 2rem;
+      }
+      .message {
+        max-width: 90%;
+        font-size: 0.95rem;
+      }
+      .input-area input[type="text"] {
+        font-size: 0.95rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container" role="main" aria-label="FAQ Chatbot for Internship Help">
+    <header>
+      <h1>FAQ Chatbot</h1>
+      <p>Your assistant for internships, applications, and organization info.</p>
+    </header>
+    <section class="chat-window" id="chat-window" aria-live="polite" aria-relevant="additions">
+      <!-- Messages will appear here -->
+    </section>
+    <div class="input-area" aria-label="Type your question">
+      <input
+        type="text"
+        id="user-input"
+        aria-label="Type your question"
+        placeholder="Start typing your question here..."
+        autocomplete="off"
+        spellcheck="false"
+        autofocus
+      />
+    </div>
+
+  <script>
+    (() => {
+      const faqData = [
+        {
+          question: "What internships are available?",
+          answer:
+            "We offer internships in software development, marketing, design, and data analytics. Visit our careers page for current openings.",
+        },
+        {
+          question: "How do I apply for an internship?",
+          answer:
+            "You can apply by filling out the application form on our website under the 'Internships' section. Be sure to submit all required documents.",
+        },
+        {
+          question: "What is the application deadline?",
+          answer:
+            "The application deadline is typically the last day of the month before the internship start date. Check the specific internship listing for details.",
+        },
+        {
+          question: "Can international students apply?",
+          answer:
+            "Yes, international students are welcome to apply. Please note visa requirements and allow extra processing time.",
+        },
+        {
+          question: "What is the duration of the internship?",
+          answer:
+            "Most internships last between 8 to 12 weeks during the summer, but some may be longer or shorter based on the role.",
+        },
+        {
+          question: "Do interns get paid?",
+          answer:
+            "Yes, all internships are paid according to the role and local labor laws.",
+        },
+        {
+          question: "What should I prepare for the interview?",
+          answer:
+            "Prepare by reviewing your resume, researching the company, and practicing common interview questions related to your field.",
+        },
+        {
+          question: "Where is the company located?",
+          answer:
+            "Our main office is located in San Francisco, CA, with remote internships available for select roles.",
+        },
+        {
+          question: "Who can I contact for support?",
+          answer:
+            "For support, please email internships@company.com or call (123) 456-7890 during business hours.",
+        },
+        {
+          question: "How can I learn more about the company culture?",
+          answer:
+            "Visit our 'About Us' page and follow us on social media to get insights into our company culture and values.",
+        },
+      ];
+
+      const chatWindow = document.getElementById("chat-window");
+      const userInput = document.getElementById("user-input");
+
+      // Escape HTML utility to prevent XSS
+      function escapeHTML(str) {
+        return str.replace(/[&<>"']/g, function (m) {
+          return {
+            "&": "&amp;",
+            "<": "&lt;",
+            ">": "&gt;",
+            '"': "&quot;",
+            "'": "&#39;",
+          }[m];
+        });
+      }
+
+      // Append message elements to chat window
+      function appendMessage(content, sender) {
+        const messageElem = document.createElement("div");
+        messageElem.classList.add("message");
+        messageElem.classList.add(sender);
+        messageElem.setAttribute("role", "article");
+        messageElem.setAttribute("aria-label", sender === "user" ? "Your message" : "Chatbot reply");
+        messageElem.innerHTML = escapeHTML(content);
+        chatWindow.appendChild(messageElem);
+        chatWindow.scrollTop = chatWindow.scrollHeight;
+        return messageElem;
+      }
+
+      // Basic NLP matching function for FAQ
+      function findBestAnswer(input) {
+        const cleanedInput = input.toLowerCase().trim();
+
+        if (cleanedInput.length === 0) return null;
+
+        let bestMatch = null;
+        let bestScore = 0;
+
+        faqData.forEach((item) => {
+          const question = item.question.toLowerCase();
+          let score = 0;
+
+          // Count how many keywords appear from user's input in the question (by words)
+          const inputWords = cleanedInput.split(/\s+/);
+          inputWords.forEach((word) => {
+            if (question.includes(word)) {
+              score += 1;
+            }
+          });
+
+          if (score > bestScore) {
+            bestScore = score;
+            bestMatch = item.answer;
+          }
+        });
+
+        if (bestScore === 0) {
+          return null;
+        }
+        return bestMatch;
+      }
+
+      function debounce(func, wait) {
+        let timeout;
+        return function (...args) {
+          clearTimeout(timeout);
+          timeout = setTimeout(() => func.apply(this, args), wait);
+        };
+      }
+
+      // Variables for live chat messages
+      let lastUserMessageElem = null;
+      let lastBotMessageElem = null;
+
+      // Update messages with new text instead of adding new for real-time feel
+      function updateUserMessage(text) {
+        if (lastUserMessageElem) {
+          lastUserMessageElem.textContent = text;
+          chatWindow.scrollTop = chatWindow.scrollHeight;
+        } else {
+          lastUserMessageElem = appendMessage(text, "user");
+        }
+      }
+      function updateBotMessage(text) {
+        if (lastBotMessageElem) {
+          lastBotMessageElem.textContent = text;
+          chatWindow.scrollTop = chatWindow.scrollHeight;
+        } else {
+          lastBotMessageElem = appendMessage(text, "bot");
+        }
+      }
+
+      // Real-time response on input with debounce
+      const handleInput = debounce(() => {
+        const question = userInput.value.trim();
+        if (question.length === 0) {
+          // Clear messages if empty
+          if (lastUserMessageElem) {
+            lastUserMessageElem.remove();
+            lastUserMessageElem = null;
+          }
+          if (lastBotMessageElem) {
+            lastBotMessageElem.remove();
+            lastBotMessageElem = null;
+          }
+          return;
+        }
+
+        updateUserMessage(question);
+
+        const answer = findBestAnswer(question);
+        if (answer) {
+          updateBotMessage(answer);
+        } else {
+          updateBotMessage(
+            "I'm sorry, I couldn't find an answer to that question. Try rephrasing or contact internships@company.com."
+          );
+        }
+      }, 400);
+
+      userInput.addEventListener("input", handleInput);
+
+      // Focus input on load
+      userInput.focus();
+    })();
+  </script>
+</body>
+</html>
+
